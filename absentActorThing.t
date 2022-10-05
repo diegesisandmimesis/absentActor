@@ -22,9 +22,19 @@ modify AbsentActor
 		infoTab.forEachAssoc(function(obj, info) {
 			if(obj.suppressAutoSeen)
 				return;
-			if(!obj.ofKind(AbsentActorMemorable))
+			if(!obj.ofKind(AbsentActorMemorable)
+				&& !obj.ofKind(Room))
 				return;
 			setAbsentActorMemory(obj);
 		});
 	}
+
+/*
+	disambigName() {
+		if(location == getOutermostRoom) {
+			return('<<name>> in <<location.roomName>>');
+		}
+		return(inherited());
+	}
+*/
 ;

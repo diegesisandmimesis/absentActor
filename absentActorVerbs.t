@@ -30,6 +30,7 @@ VerbRule(RememberAll)
 
 DefineTAction(Remember)
 	objInScope(obj) { return(gActor.getAbsentActorMemory(obj) != nil); }
+	//objInScope(obj) { return(true); }
 ;
 
 VerbRule(Remember)
@@ -44,10 +45,10 @@ modify Thing
 
 			m = gActor.getAbsentActorMemory(self);
 			if(!m) {
-				defaultReport(&absentActorNoMemoryObject, obj);
+				defaultReport(&absentActorNoMemoryObject, self);
 				return;
 			}
-			defaultReport(&absentActorMemoryObject, obj, m);
+			defaultReport(&absentActorMemoryObject, self, m);
 		}
 	}
 ;

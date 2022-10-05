@@ -15,7 +15,11 @@ modify playerActionMessages
 	// Same as above, only for an object.
 	absentActorNoMemoryObject(obj) {
 		gMessageParams(obj);
-		return('{You/he} {do}n\'t know remember {you/him obj}.');
+		if(gActor.hasSeen(obj)) {
+			return('{You/he} remember{s} seeing {that/him dobj}, but you don\'t remember more than that.');
+		} else {
+			return('{You/he} {do}n\'t have any memories of {that/him dobj}.');
+		}
 	}
 
 	// Trying to do something to an actor we know but who isn't here.
