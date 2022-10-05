@@ -44,15 +44,30 @@ versionInfo:    GameID
 	}
 ;
 
+class Pebble: Thing 'small round pebble' 'pebble'
+	"A small, round pebble."
+;
+
+class Box: OpenableContainer, AbsentActorMemorable
+	disambigName() {
+		if(location == getOutermostRoom())
+			return('box in <<location.roomName>>');
+		return(inherited());
+	}
+;
+
 // Our game world is three rooms, two NPCs, and the player.
 startRoom:      Room 'Void'
         "This is a featureless void.  Alice's room is to the north, and
 		Bob's room lies to the south. "
+	vocabWords = name
 	north = alicesRoom
 	south = bobsRoom
 ;
 alicesRoom:	Room 'Alice\'s Room'
 	"This is Alice's room.  It is not a restaurant. "
+	vocabWords = name
+	isProperName = true
 	south = startRoom
 ;
 + alice: Person 'alice' 'Alice'
@@ -60,14 +75,33 @@ alicesRoom:	Room 'Alice\'s Room'
 	isHer = true
 	isProperName = true
 ;
++ alicesBox: Box, Fixture
+	'(alice\'s) steel box' 'box'
+	"A small steel box. "
+	isListed = true
+	contentsListed = nil
+	contentsListedInExamine = nil
+;
 bobsRoom:	Room 'Bob\'s Room'
 	"This is Bob's room. "
+	vocabWords = name
+	isProperName = true
 	north = startRoom
 ;
 + bob: Person 'bob' 'Bob'
 	"He looks like a Robert, only shorter. "
 	isProperName = true
 	isHim = true
+;
++ bobsBox: Box, Fixture
+	'(bob\'s) wooden box' 'box'
+	"A small wooden box. "
+	isListed = true
+	contentsListed = nil
+	contentsListedInExamine = nil
+;
+++ pebble: Thing 'small round pebble' 'pebble'
+	"A small, round pebble. "
 ;
 
 me:     Person, AbsentActor

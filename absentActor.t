@@ -60,6 +60,15 @@ class AbsentActorMemory: object
 	location = nil			// location remembered object was in
 	turn = nil			// turn remembered object was last seen
 
+	ages = static [
+		3 -> 'recently',
+		10 -> 'fairly recently',
+		20 -> 'a while ago',
+		40 -> 'a long time ago',
+		80 -> 'a very long time ago'
+	]
+	ageOldest = 'a very, very long time ago'
+
 	// Get the number of turns since this memory was set.  
 	// KLUDGE ALERT:  If the turn isn't set for this memory, we use
 	// zero.  The assumption here is that that's a corner case (the
@@ -68,6 +77,35 @@ class AbsentActorMemory: object
 	getAge() {
 		return(libGlobal.totalTurns - (self.turn ? self.turn : 0));
 		
+	}
+
+	// The age as a string of the form '1 turn'/'n turns'.
+	ageInTurns() {
+		local i;
+
+		i = getAge();
+		
+		return('<<toString(i)>> turn<<if(i != 1)>>s<<end>>');
+	}
+
+	ageEstimate() {
+		local i, r;
+
+		i = getAge();
+		r = nil;
+		ages.forEachAssoc(function(k, v) {
+			if(r) return;
+			if(i <= k)
+				r = v;
+		});
+		if(!r) r = ageOldest;
+
+		return(r);
+	}
+
+	locationName() {
+		if(!location) return('nowhere');
+		return(location.roomName);
 	}
 
 	update(loc?, tn?) {
@@ -98,38 +136,42 @@ class AbsentActor: Actor
 		local l;
 
 		l = inherited(actor);
-
 		if(actor != self)
 			return(l);
 
-		forEachInstance(Actor, function(o) {
-			if(knowsAbout(o) || hasSeen(o) || o.isProperName)
-				l += o;
-		});
+		l = _getExtraScopeItemsActors(l);
 
 		return(l);
 	}
-	// Return the memory of the passed actor, if we have one.
-	getAbsentActorMemory(actor) {
-		if(absentActorMemory == nil) return(nil);
-		return(absentActorMemory[actor]);
+	_getExtraScopeItemsActors(lst) {
+		forEachInstance(Actor, function(o) {
+			if(knowsAbout(o) || hasSeen(o) || o.isProperName)
+				lst += o;
+		});
+		return(lst);
 	}
-	// Remember the passed actor.
-	setAbsentActorMemory(actor) {
+
+	// Return the memory of the passed obj, if we have one.
+	getAbsentActorMemory(obj) {
+		if(absentActorMemory == nil) return(nil);
+		return(absentActorMemory[obj]);
+	}
+	// Remember the passed thing.
+	setAbsentActorMemory(obj) {
 		// Create the LookupTable for our memories if it doesn't
 		// already exist.
 		if(absentActorMemory == nil)
 			absentActorMemory = new LookupTable();
 
-		// If a memory for this actor already exists, update it
-		if(absentActorMemory[actor]) {
-			absentActorMemory[actor].update(actor.location);
+		// If a memory for this obj already exists, update it
+		if(absentActorMemory[obj]) {
+			absentActorMemory[obj].update(obj.location);
 			return;
 		}
 
 		// Create a new memory
-		absentActorMemory[actor] =
-			new AbsentActorMemory(actor.location);
+		absentActorMemory[obj] =
+			new AbsentActorMemory(obj.location);
 	}
 ;
 
@@ -151,24 +193,3 @@ modify objVisible
 	
 ;
 
-// Action messages for memories.  Called by the objVisible precondition
-// above.
-modify playerActionMessages
-	// Trying to do something to an actor who we don't know yet and
-	// who isn't here
-	absentActorNoMemory(obj) {
-		gMessageParams(obj);
-		return('{You/he} {do}n\'t know anyone named {you/him obj}.');
-	}
-
-	// Trying to do something to an actor we know but who isn't here.
-	absentActorMemory(obj, mem) {
-		local i;
-		gMessageParams(obj);
-		i = mem.getAge();
-		return('{That/he obj} {is}n\'t here.  The last place {you/he}
-			remember seeing {it/him obj} is
-			<<mem.location.roomName>>, <<toString(i)>>
-			turn<<if (i != 1)>>s<<end>> ago. ');
-	}
-;
