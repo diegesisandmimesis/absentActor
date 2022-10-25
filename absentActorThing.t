@@ -4,6 +4,7 @@
 
 class AbsentActorMemorable: Thing;
 
+/*
 modify AbsentActor
 	afterAction() {
 		absentActorRememberLocation();
@@ -28,13 +29,5 @@ modify AbsentActor
 			setAbsentActorMemory(obj);
 		});
 	}
-
-/*
-	disambigName() {
-		if(location == getOutermostRoom) {
-			return('<<name>> in <<location.roomName>>');
-		}
-		return(inherited());
-	}
-*/
 ;
+*/

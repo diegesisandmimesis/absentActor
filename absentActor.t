@@ -34,7 +34,7 @@ absentActorModuleID: ModuleID {
 
 
 // Modifications to the base Actor class.
-// We modify it because we need to touch noteSeenBy(), which is called
+// We modify Actor because we need to touch noteSeenBy(), which is called
 // by the thing being seen, not the thing doing the seeing.
 modify Actor
 	// Called when this actor (self) is seen by the actor passed as the
@@ -55,6 +55,7 @@ modify Actor
 	setAbsentActorMemory(actor) { return(nil); }
 ;
 
+/*
 // An object class to hold all the things we want to remember.
 class AbsentActorMemory: object
 	location = nil			// location remembered object was in
@@ -122,6 +123,7 @@ class AbsentActorMemory: object
 		turn = (tn ? tn : libGlobal.totalTurns);
 	}
 ;
+*/
 
 // Class for Actors that remember things.
 // Actors who need to remember the times and locations should include this
@@ -173,6 +175,34 @@ class AbsentActor: Actor
 		absentActorMemory[obj] =
 			new AbsentActorMemory(obj.location);
 	}
+
+	// Called every turn, remember the stuff around us.
+	afterAction() {
+		absentActorRememberLocation();
+		inherited();
+	}
+
+	// Remember all the AbsentActorMemorable things in our current location
+	absentActorRememberLocation() {
+		local infoTab;
+
+		if(!location || !canSee(location))
+			return;
+
+		// Remember the location itself.
+		setAbsentActorMemory(location);
+
+		// Now remember all visible, memorable stuff.
+		infoTab = visibleInfoTableFromPov(self);
+		infoTab.forEachAssoc(function(obj, info) {
+			if(obj.suppressAutoSeen)
+				return;
+			if(!obj.ofKind(AbsentActorMemorable)
+				&& !obj.ofKind(Room))
+				return;
+			setAbsentActorMemory(obj);
+		});
+	}
 ;
 
 // Twiddle the objVisible precondition to fail with memory-specific
@@ -192,4 +222,3 @@ modify objVisible
 	}
 	
 ;
-

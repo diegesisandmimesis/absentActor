@@ -16,10 +16,16 @@ modify playerActionMessages
 	absentActorNoMemoryObject(obj) {
 		gMessageParams(obj);
 		if(gActor.hasSeen(obj)) {
-			return('{You/he} remember{s} seeing {that/him dobj}, but you don\'t remember more than that.');
+			return('{You/he} remember{s} seeing {that/him dobj},
+				but you don\'t remember more than that.');
 		} else {
-			return('{You/he} {do}n\'t have any memories of {that/him dobj}.');
+			return('{You/he} {do}n\'t have any memories of
+				{that/him dobj}.');
 		}
+	}
+
+	absentActorNoMemoryRoom(obj) {
+		return('{You/he} don\'t remember ever having been there.');
 	}
 
 	// Trying to do something to an actor we know but who isn't here.
@@ -33,10 +39,13 @@ modify playerActionMessages
 			turn<<if (i != 1)>>s<<end>> ago. ');
 	}
 	absentActorMemoryObject(obj, mem) {
-		gMessageParams(obj);
 		return('{That/he dobj} {is dobj}n\'t here.  The last place
 			{you/he} remember seeing {it/him dobj} is
 			<<mem.locationName()>>, <<mem.ageEstimate()>>. ');
+	}
+	absentActorMemoryRoom(obj, mem) {
+		return('{You/he} remember being there,
+			<<mem.ageEstimate()>>. ');
 	}
 ;
 

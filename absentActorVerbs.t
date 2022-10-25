@@ -29,8 +29,10 @@ VerbRule(RememberAll)
 */
 
 DefineTAction(Remember)
-	objInScope(obj) { return(gActor.getAbsentActorMemory(obj) != nil); }
-	//objInScope(obj) { return(true); }
+	objInScope(obj) {
+		return((gActor.getAbsentActorMemory(obj) != nil)
+			|| (obj.ofKind(Actor)));
+	}
 ;
 
 VerbRule(Remember)
@@ -40,15 +42,53 @@ VerbRule(Remember)
 
 modify Thing
 	dobjFor(Remember) {
-		action() {
-			local m;
-
-			m = gActor.getAbsentActorMemory(self);
-			if(!m) {
-				defaultReport(&absentActorNoMemoryObject, self);
-				return;
-			}
-			defaultReport(&absentActorMemoryObject, self, m);
+		verify() {
+			if(!gActor.getAbsentActorMemory(self))
+				absentActorRememberFailed();
 		}
+		action() { absentActorRemember(); }
+	}
+	absentActorRememberFailed() {
+		if(ofKind(Actor)) {
+			absentActorRememberFailedActor();
+			return;
+		}
+		if(ofKind(Room)) {
+			absentActorRememberFailedRoom();
+			return;
+		}
+		absentActorRememberFailedDefault();
+	}
+	absentActorRememberFailedActor() {
+		defaultReport(&absentActorNoMemory, self);
+	}
+	absentActorRememberFailedRoom() {
+		defaultReport(&absentActorNoMemoryRoom, self);
+	}
+	absentActorRememberFailedDefault() {
+		defaultReport(&absentActorNoMemoryObject, self);
+	}
+	absentActorRemember() {
+		local m;
+
+		m = gActor.getAbsentActorMemory(self);
+		if(ofKind(Actor)) {
+			absentActorRememberActor(m);
+			return;
+		}
+		if(ofKind(Room)) {
+			absentActorRememberRoom(m);
+			return;
+		}
+		absentActorRememberDefault(m);
+	}
+	absentActorRememberActor(mem) {
+		defaultReport(&absentActorMemory, self, mem);
+	}
+	absentActorRememberRoom(mem) {
+		defaultReport(&absentActorMemoryRoom, self, mem);
+	}
+	absentActorRememberDefault(mem) {
+		defaultReport(&absentActorMemoryObject, self, mem);
 	}
 ;
