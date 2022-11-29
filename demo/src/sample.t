@@ -70,10 +70,19 @@ alicesRoom:	Room 'Alice\'s Room'
 	isProperName = true
 	south = startRoom
 ;
-+ alice: Person 'alice' 'Alice'
++ alice: Person 'Alice' 'Alice'
 	"She looks like the first person you'd turn to in a problem. "
 	isHer = true
 	isProperName = true
+;
+++HelloTopic
+	topicResponse() {
+		"<q>Hi.</q> ";
+	}
+;
+++boxTopic: Topic 'box';
+++AskTellTopic @boxTopic
+	"<q>It\'s just a box.</q> "
 ;
 + alicesBox: Box, Fixture
 	'(alice\'s) steel box' 'box'
@@ -88,7 +97,7 @@ bobsRoom:	Room 'Bob\'s Room'
 	isProperName = true
 	north = startRoom
 ;
-+ bob: Person 'bob' 'Bob'
++ bob: Person 'Bob' 'Bob'
 	"He looks like a Robert, only shorter. "
 	isProperName = true
 	isHim = true

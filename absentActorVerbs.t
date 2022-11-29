@@ -83,12 +83,24 @@ modify Thing
 		absentActorRememberDefault(m);
 	}
 	absentActorRememberActor(mem) {
-		defaultReport(&absentActorMemory, self, mem);
+		if(mem) {
+			defaultReport(&absentActorMemory, self, mem);
+		} else {
+			reportFailure(&absentActorNoMemory, self);
+		}
 	}
 	absentActorRememberRoom(mem) {
-		defaultReport(&absentActorMemoryRoom, self, mem);
+		if(mem) {
+			defaultReport(&absentActorMemoryRoom, self, mem);
+		} else {
+			reportFailure(&absentActorNoMemoryRoom, self);
+		}
 	}
 	absentActorRememberDefault(mem) {
-		defaultReport(&absentActorMemoryObject, self, mem);
+		if(mem) {
+			defaultReport(&absentActorMemoryObject, self, mem);
+		} else {
+			reportFailure(&absentActorNoMemoryObject, self);
+		}
 	}
 ;

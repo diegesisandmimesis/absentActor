@@ -32,11 +32,27 @@ absentActorModuleID: ModuleID {
 	listingOrder = 99
 }
 
+modify Thing
+	inAbsentActorScope() { return(nil); }
+;
 
 // Modifications to the base Actor class.
 // We modify Actor because we need to touch noteSeenBy(), which is called
 // by the thing being seen, not the thing doing the seeing.
 modify Actor
+	// Used to keep track if we're in the memory "pseudo scope" for the
+	// current action
+	_absentActorScope = nil
+
+	// Set or clear the scope tracking property
+	setAbsentActorScope(v?) {
+		_absentActorScope = ((v == true) ? libGlobal.totalTurns : nil);
+	}
+
+	inAbsentActorScope() {
+		return(_absentActorScope == libGlobal.totalTurns);
+	}
+
 	// Called when this actor (self) is seen by the actor passed as the
 	// first arg.  Part of basic adv3 behavior we're glomming onto.
 	noteSeenBy(actor, prop) {
@@ -55,76 +71,6 @@ modify Actor
 	setAbsentActorMemory(actor) { return(nil); }
 ;
 
-/*
-// An object class to hold all the things we want to remember.
-class AbsentActorMemory: object
-	location = nil			// location remembered object was in
-	turn = nil			// turn remembered object was last seen
-
-	ages = static [
-		3 -> 'recently',
-		10 -> 'fairly recently',
-		20 -> 'a while ago',
-		40 -> 'a long time ago',
-		80 -> 'a very long time ago'
-	]
-	ageOldest = 'a very, very long time ago'
-
-	// Get the number of turns since this memory was set.  
-	// KLUDGE ALERT:  If the turn isn't set for this memory, we use
-	// zero.  The assumption here is that that's a corner case (the
-	// turn gets set by default) and we rather have a bogus return
-	// value than an error.
-	getAge() {
-		return(libGlobal.totalTurns - (self.turn ? self.turn : 0));
-		
-	}
-
-	// The age as a string of the form '1 turn'/'n turns'.
-	ageInTurns() {
-		local i;
-
-		i = getAge();
-		
-		return('<<toString(i)>> turn<<if(i != 1)>>s<<end>>');
-	}
-
-	ageEstimate() {
-		local i, r;
-
-		i = getAge();
-		r = nil;
-		ages.forEachAssoc(function(k, v) {
-			if(r) return;
-			if(i <= k)
-				r = v;
-		});
-		if(!r) r = ageOldest;
-
-		return(r);
-	}
-
-	locationName() {
-		if(!location) return('nowhere');
-		return(location.roomName);
-	}
-
-	update(loc?, tn?) {
-		location = loc;
-		turn = (tn ? tn : libGlobal.totalTurns);
-	}
-
-	// Arguments to the constructor are the location the remembered
-	// object was in, and the turn number it was seen on.
-	construct(loc?, tn?) {
-		location = loc;
-		// If an explicit turn number isn't passed as an arg, use
-		// the current turn.
-		turn = (tn ? tn : libGlobal.totalTurns);
-	}
-;
-*/
-
 // Class for Actors that remember things.
 // Actors who need to remember the times and locations should include this
 // class in their definition.
@@ -137,18 +83,36 @@ class AbsentActor: Actor
 	getExtraScopeItems(actor) {
 		local l;
 
+		// Start out with our "normal" extra scope items.
 		l = inherited(actor);
-		if(actor != self)
+
+		// Make sure we want to twiddle the scope list.
+		if(!_getExtraScopeItemsCheck(actor)) 
 			return(l);
 
 		l = _getExtraScopeItemsActors(l);
 
 		return(l);
 	}
+	_getExtraScopeItemsCheck(actor) {
+		if(actor != self)
+			return(nil);
+		return(true);
+	}
 	_getExtraScopeItemsActors(lst) {
 		forEachInstance(Actor, function(o) {
+			// Don't add ourselves
+			if(o == self)
+				return;
+
+			// Make sure we're not already in the list
+			if(lst.indexOf(o) != nil)
+				return;
+
+			// We add actors we know about, have seen, or
+			// are defined as having proper names.
 			if(knowsAbout(o) || hasSeen(o) || o.isProperName)
-				lst += o;
+				o.setAbsentActorScope(true);
 		});
 		return(lst);
 	}
@@ -158,6 +122,7 @@ class AbsentActor: Actor
 		if(absentActorMemory == nil) return(nil);
 		return(absentActorMemory[obj]);
 	}
+
 	// Remember the passed thing.
 	setAbsentActorMemory(obj) {
 		// Create the LookupTable for our memories if it doesn't
