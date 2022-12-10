@@ -52,7 +52,7 @@ class AbsentActorMemory: object
 
 	locationName() {
 		if(!location) return('nowhere');
-		return(location.roomName);
+		return(location.getOutermostRoom().roomName);
 	}
 
 	update(loc?, tn?) {

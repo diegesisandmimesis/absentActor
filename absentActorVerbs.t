@@ -2,39 +2,35 @@
 #include <adv3.h>
 #include <en_us.h>
 
-/*
-DefineIAction(RememberAll)
-	execAction() {
-		local m;
+// Precondition for the Remember action.
+canRemember: PreCondition
+	checkPreCondition(obj, allowImplicit) {
+		// If an object isn't specified, assume it's the actor
+		// taking the action.
+		if(obj == nil)
+			obj = gActor;
 
-		if(!gActor.ofKind(AbsentActor)) {
-			"No memories.";
-			return;
+		// If we don't have an object, we can't figure out if
+		// remembering makes sense or not, so we bail.
+		if(gDobj == nil) exit;
+
+		// If the actor doesn't know about the object being
+		// remembered, we display the object's "you have no
+		// memory of that" message (which will be specific to
+		// the class of object, and possibly the object itself)
+		// and we're done.
+		if(!gActor.knowsAbout(gDobj)) {
+			gDobj.absentActorRememberFailed();
+			exit;
 		}
-		m = gActor.absentActorMemory;
-		if(!m) {
-			"No memories.";
-			return;
-		}
-		m.forEachAssoc(function(obj, mem) {
-			"<<obj.name>>:  <<mem.location.roomName>>, <<toString(mem.getAge())>>\n ";
-		});
 	}
 ;
-
-VerbRule(RememberAll)
-	'remember' : RememberAllAction
-	verbPhrase = 'remember/remembering'
-;
-*/
 
 DefineTAction(Remember)
-	objInScope(obj) {
-		return((gActor.getAbsentActorMemory(obj) != nil)
-			|| (obj.ofKind(Actor)));
-	}
+	// Everything is, in principle, capable of being remembered,
+	// regardless of normal scope rules.
+	objInScope(obj) { return(true); }
 ;
-
 VerbRule(Remember)
 	'remember' singleDobj : RememberAction
 	verbPhrase = 'remember/remembering (what)'
@@ -43,64 +39,73 @@ VerbRule(Remember)
 modify Thing
 	dobjFor(Remember) {
 		verify() {
-			if(!gActor.getAbsentActorMemory(self))
-				absentActorRememberFailed();
+			// First we check to see if the object we're trying
+			// to remember is present.  If so, we don't need to
+			// remember it, it's there.
+			if(gActor.canSee(self))
+				illogicalNow(&absentActorCanSee);
+
+			// Now we mark objects we don't know about as dangerous.
+			// This means they won't end up in resolved objects
+			// lists unless they're explicitly named.  This will
+			// prevent unseen/unknown objects showing up in
+			// disambiguation prompts.
+			if(!gActor.knowsAbout(self))
+				dangerous;
 		}
+
+		// For action() we just punt to the memory logic.
 		action() { absentActorRemember(); }
 	}
+
+	// No memory of the requested object.
 	absentActorRememberFailed() {
-		if(ofKind(Actor)) {
-			absentActorRememberFailedActor();
-			return;
-		}
-		if(ofKind(Room)) {
-			absentActorRememberFailedRoom();
-			return;
-		}
-		absentActorRememberFailedDefault();
+		inaccessible(&absentActorNoMemoryObject, self);
 	}
-	absentActorRememberFailedActor() {
-		defaultReport(&absentActorNoMemory, self);
+
+	// Successfully remembering the object.
+	absentActorRemember() {
+		local m;
+
+		m = gActor.getAbsentActorMemory(self);
+		if(m != null)
+			defaultReport(&absentActorMemoryObject, self, m);
+		else
+			reportFailure(&absentActorNoMemoryObject, self);
 	}
-	absentActorRememberFailedRoom() {
-		defaultReport(&absentActorNoMemoryRoom, self);
+
+	// We're trying to remember something we can see.
+	absentActorRememberVisible() {
+		defaultReport(&absentActorCanSee);
 	}
-	absentActorRememberFailedDefault() {
-		defaultReport(&absentActorNoMemoryObject, self);
+;
+
+modify Actor
+	absentActorRememberFailed() {
+		inaccessible(&absentActorNoMemoryActor, self);
 	}
 	absentActorRemember() {
 		local m;
 
 		m = gActor.getAbsentActorMemory(self);
-		if(ofKind(Actor)) {
-			absentActorRememberActor(m);
-			return;
-		}
-		if(ofKind(Room)) {
-			absentActorRememberRoom(m);
-			return;
-		}
-		absentActorRememberDefault(m);
+		if(m != nil)
+			defaultReport(&absentActorMemoryActor, self, m);
+		else
+			reportFailure(&absentActorNoMemoryActor, self);
 	}
-	absentActorRememberActor(mem) {
-		if(mem) {
-			defaultReport(&absentActorMemory, self, mem);
-		} else {
-			reportFailure(&absentActorNoMemory, self);
-		}
+;
+
+modify Room
+	absentActorRememberFailed() {
+		inaccessible(&absentActorNoMemoryRoom, self);
 	}
-	absentActorRememberRoom(mem) {
-		if(mem) {
-			defaultReport(&absentActorMemoryRoom, self, mem);
-		} else {
+	absentActorRemember() {
+		local m;
+
+		m = gActor.getAbsentActorMemory(self);
+		if(m != nil)
+			defaultReport(&absentActorMemoryRoom, self, m);
+		else
 			reportFailure(&absentActorNoMemoryRoom, self);
-		}
-	}
-	absentActorRememberDefault(mem) {
-		if(mem) {
-			defaultReport(&absentActorMemoryObject, self, mem);
-		} else {
-			reportFailure(&absentActorNoMemoryObject, self);
-		}
 	}
 ;

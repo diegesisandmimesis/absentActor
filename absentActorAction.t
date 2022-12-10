@@ -18,8 +18,7 @@ modify Action
 
 		// If we're already in scope, we don't have anything to do.
 		r = inherited(obj);
-		if(r)
-			return(r);
+		if(r) return(r);
 
 		return(objInAbsentActorScope(obj));
 	}

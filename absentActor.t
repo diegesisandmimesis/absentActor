@@ -176,12 +176,14 @@ modify objVisible
 	verifyPreCondition(obj) {
 		local mem;
 
-		if(obj != nil && !gActor.canSee(obj)) {
+		if((obj != nil) && !gActor.canSee(obj)) {
 			mem = gActor.getAbsentActorMemory(obj);
-			if(mem)
-				inaccessible(&absentActorMemory, obj, mem);
-			if(obj.ofKind(Person))
-				inaccessible(&absentActorNoMemory, obj);
+			if(mem) {
+				inaccessible(&absentActorHaveMemory, obj);
+			} else {
+				if(obj.ofKind(Person))
+					inaccessible(&absentActorNoMemory, obj);
+			}
 		}
 		inherited(obj);
 	}

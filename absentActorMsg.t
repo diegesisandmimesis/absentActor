@@ -5,9 +5,13 @@
 // Action messages for memories.  Called by the objVisible precondition
 // above.
 modify playerActionMessages
+	// Trying to remember something currently visible
+	absentActorCanSee = '{You/he} {do}n\'t have to remember, {you/he}
+		can see {it/him dobj}. '
+
 	// Trying to do something to an actor who we don't know yet and
 	// who isn't here
-	absentActorNoMemory(obj) {
+	absentActorNoMemoryActor(obj) {
 		gMessageParams(obj);
 		return('{You/he} {do}n\'t know anyone named {you/him obj}.');
 	}
@@ -29,8 +33,32 @@ modify playerActionMessages
 	}
 
 	// Trying to do something to an actor we know but who isn't here.
-	absentActorMemory(obj, mem) {
+	absentActorHaveMemory(obj) {
+		gMessageParams(obj);
+		return('{That/he obj} {is}n\'t here. ');
+	}
+	absentActorHaveMemoryObject(obj) {
+		return('{That/he dobj} {is dobj}n\'t here. ');
+	}
+	absentActorHaveMemoryRoom(obj) {
+		return('That\'s somewhere else. ');
+	}
+	absentActorMemoryActor(obj, mem) {
+		return('The last place {you/he} remember seeing {it/him dobj} is
+			<<mem.locationName()>>, <<mem.ageEstimate()>>. ');
+	}
+	absentActorMemoryObject(obj, mem) {
+		return('The last place {you/he} remember seeing {it/him dobj} is
+			<<mem.locationName()>>, <<mem.ageEstimate()>>. ');
+	}
+	absentActorMemoryRoom(obj, mem) {
+		return('{You/he} remember being there,
+			<<mem.ageEstimate()>>. ');
+	}
+/*
+	absentActorHaveMemory(obj) {
 		local i;
+
 		gMessageParams(obj);
 		i = mem.getAge();
 		return('{That/he obj} {is}n\'t here.  The last place {you/he}
@@ -38,7 +66,7 @@ modify playerActionMessages
 			<<mem.location.roomName>>, <<toString(i)>>
 			turn<<if (i != 1)>>s<<end>> ago. ');
 	}
-	absentActorMemoryObject(obj, mem) {
+	absentActorHaveMemoryObject(obj, mem) {
 		return('{That/he dobj} {is dobj}n\'t here.  The last place
 			{you/he} remember seeing {it/him dobj} is
 			<<mem.locationName()>>, <<mem.ageEstimate()>>. ');
@@ -47,6 +75,7 @@ modify playerActionMessages
 		return('{You/he} remember being there,
 			<<mem.ageEstimate()>>. ');
 	}
+*/
 ;
 
 
