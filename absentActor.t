@@ -182,7 +182,8 @@ modify objVisible
 				inaccessible(&absentActorHaveMemory, obj);
 			} else {
 				if(obj.ofKind(Person))
-					inaccessible(&absentActorNoMemory, obj);
+					inaccessible(&absentActorNoMemoryActor,
+						obj);
 			}
 		}
 		inherited(obj);

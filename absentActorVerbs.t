@@ -68,7 +68,7 @@ modify Thing
 		local m;
 
 		m = gActor.getAbsentActorMemory(self);
-		if(m != null)
+		if(m != nil)
 			defaultReport(&absentActorMemoryObject, self, m);
 		else
 			reportFailure(&absentActorNoMemoryObject, self);
