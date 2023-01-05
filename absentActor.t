@@ -26,7 +26,7 @@
 
 // Module ID for the library
 absentActorModuleID: ModuleID {
-	name = 'absentActor Library'
+	name = 'Absent Actor Library'
 	byline = 'jbg'
 	version = '1.0'
 	listingOrder = 99
